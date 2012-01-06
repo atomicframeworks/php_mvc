@@ -1,8 +1,6 @@
 <?php
-	global $controller;
 
-	//// Set error display 
-
+	//// Set error display function
 	function setReporting() {
 		if (DEVELOPMENT_ENVIRONMENT == true) {
 			error_reporting(E_ALL);
@@ -16,13 +14,11 @@
 		}
 	}
 	
-	/** Check for Magic Quotes and remove them **/
-
+	//// Check for Magic Quotes and remove them
 	function stripSlashesDeep($value) {
 		$value = is_array($value) ? array_map('stripSlashesDeep', $value) : stripslashes($value);
 		return $value;
 	}
-
 	function removeMagicQuotes() {
 		// Escape if magic quotes are enabled
 		if ( get_magic_quotes_gpc() ) {
@@ -32,9 +28,7 @@
 		}
 	}
 
-
 	//// Check register globals and remove them
-	
 	function unregisterGlobals() {
 	    if (ini_get('register_globals')) {
 	        $array = array('_SESSION', '_POST', '_GET', '_COOKIE', '_REQUEST', '_SERVER', '_ENV', '_FILES');
@@ -50,7 +44,6 @@
 	
 
 	//// Autoload any classes
-
 	function autoload($className) {
 		
 		if (file_exists(ROOT . DS . 'application' . DS . 'views' . DS . strtolower($className) . '.class.php')) {
@@ -71,42 +64,39 @@
 		
 	}
 	
+	//// Trim quotes from string
 	function tQuote($val = ''){
 		return trim($val,"\x22\x27");
 	}
 	
+	//// Hook used to load our view and controller from url string
 	function callHook (){
-		//// Get url query string
+		// Get url query string
 		$url = $_GET['url'];
-		//// Break to array based on directory separator
+		// Break to array based on directory separator
 		$urlArray = explode(DIRECTORY_SEPARATOR, $url);
-		//// Separate controller & view strings from query
+		// Separate controller & view strings from query
 		$controller_str = $urlArray[0];
 		$view_str = $urlArray[1];
 		
-		
-		//// Load files needed for controller & view
-		//echo "Controller: {$controller_str} <br/>";		
+		// Load files needed for controller & view
 		autoLoad($controller_str);
-		//echo "View: {$view_str} <br/>";
 		autoLoad($view_str);
-							
+		
+		// Create array to hold properties for controller	
 		$args = array('username' => DB_USERNAME, 'password' => DB_PASSWORD, 'database' => $controller_str, 'view'=>$view_str);
-		
-		global $controller;
-		$controller = new Controller($args);
-		
-						
+		$controller = new Controller($args);						
 		$queryArray= explode('?query=',$_SERVER['REQUEST_URI']);
+		
+		// Perform query statements
 		if(!empty($queryArray[1])){
 			$queryString = $queryArray[1];
 			$queryString = urldecode(tQuote($queryString));
-		//echo "<br/> Query: $queryString <br/>";
-		$controller->addStatement($queryString)->invoke()->fetchAll();
+			//echo "<br/> Query: $queryString <br/>";
+			$controller->addStatement($queryString)->invoke()->fetchAll();
 		}
-				$controller->displayView();
-
-		
+		// Load our view
+		$controller->displayView();	
 	}
 
 	

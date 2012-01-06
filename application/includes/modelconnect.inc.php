@@ -1,5 +1,5 @@
 <?php
-	// Connect to mysql database and return PDO handle
+	//// Connect to mysql database and return PDO handle
 	function modelConnect($dbname = '', $user = 'root', $pass = '',$host = 'localhost'){
 	//START DB connection try block
 	$dbh = false;

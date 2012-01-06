@@ -1,9 +1,5 @@
 <?php
-	// MySQL database connection
-	//require_once (ROOT . DS . 'includes' . DS . 'DBConnect.inc.php');
-	//include_once('includes/DBConnect.inc.php');
-	//include_once('includes/DBStatement.class.php');
-
+	//// Class model base to hold and represent MySQL database connection
 	class Model {
 		public $model;
 
@@ -11,31 +7,26 @@
 		
 		public $statementArray = array ();
 		
-		
 		//// Contstruction
 		public function __construct($args = array ()) {
-
 			if (!empty($args)){
 				foreach ($args as $key=>$item){
 					$this->$key = $item;
 				}
 			}
-			
-			// Get PDO handle
-			$this->model = modelConnect($this->database,$this->username,$this->password,$this->host);
-					
+			// Connect to DB and get PDO handle
+			$this->model = modelConnect($this->database,$this->username,$this->password,$this->host);		
 		}
 
-		
+		//// Execute all statements in statementArray
 		public function invoke(){
-
+			// Loop statements and execute
 			foreach ($this->statementArray as $statement){
 				try {
   					$statement->execute();
   				}
   				catch(PDOException $e) {
 					// Rollback changes to database on fail 
-					
 					try {
 						$this->model->rollback();
 					}
@@ -46,39 +37,34 @@
 				}
 			}
 		}
-		
-		
+			
 		//// Prepare & add statement string to object statement array
 		public function addStatement($statement = ''){
 			if (!empty($statement)){
 				$statement = new modelStatement($statement);
 			}
-			
-			//// Prepare the statement
+			// Prepare the statement
 			try {
 				$preparedStatement = $this->model->prepare($statement);
-				//// Add to models statement array
+				// Add to models statement array
 				array_push($this->statementArray, $preparedStatement);
 	  		}
 	  		catch(PDOException $e) {
-				
 				echo $e->getMessage();
 			}
-			
 			return $this;
 		}
 		
-		//// Fetch all results from statements push to array and return
+		//// Fetch all results from statements. Push each result to array and return
 		public function fetchAll($fetchStyle = PDO::FETCH_CLASS){
 			$return = array ();
 
 			if (!empty($this->statementArray)){
 				foreach ($this->statementArray as $statement){
 					try {
-						$retAr = array ('data'=>'data','statement'=>'stmt');
-						$statementReturn = $statement->fetchAll($fetchStyle);
-						$retAr['data'] = $statementReturn;
-						$retAr['statement'] = $statement->queryString;
+						$statementData = $statement->fetchAll($fetchStyle);
+						$statementString = $statement->queryString;
+						$returnArray = array ('data'=>$statementData,'statement'=>$statementString);
 	  					array_push($return, $retAr);
 	  				}
 	  				catch(PDOException $e) {
@@ -88,7 +74,6 @@
 					}
 				}
 			}
-			
 			return $return;
 		}
 		
@@ -115,5 +100,5 @@
 			return $this;
 		}
 	}
-
+	
 ?>

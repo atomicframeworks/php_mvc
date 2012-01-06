@@ -1,4 +1,5 @@
 <?php
+	//// Class to build and store complex MySQL queries
 	class ModelStatement {
 		public $statement_str;	
 		public $select_str;
@@ -27,8 +28,6 @@
 			}
 			
 			//// SELECT	
-			
-			
 			if (!empty($this->select_str)){
 				// Explode multiple select fields and stagger with as fields 
 				$this->select_str = 'SELECT '.$this->select_str;
@@ -74,16 +73,12 @@
 			}
 			else{
 			}
-			
-			//echo "Statement: ".$this->statement_str;
-			//echo '<br/>';		
+			//echo "Statement: ".$this->statement_str." <br/>";
 		}
 		
 		public function __toString(){
 			return (string) $this->statement_str;
-		}
-
-	
+		}	
 	}
 
 ?>

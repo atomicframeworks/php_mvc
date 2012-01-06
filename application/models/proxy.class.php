@@ -1,6 +1,6 @@
 <?php
 
-	class proxy {
+	class Proxy {
 	
 		public $id;
 		public $ip;
@@ -15,5 +15,4 @@
 		}
 		
 	}
-
 ?>

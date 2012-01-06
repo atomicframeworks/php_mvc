@@ -22,7 +22,7 @@
 	
 
 		<form method="get" action="./show">
-			Query: <input type="text" size="50" maxlength="50" name="query" value='select * from proxies where country = "China"'> <br />
+			Query: <input type="text" size="100" maxlength="100" name="query" value='select INET_NTOA(ip) as ip, id, port, http_code, last_update from proxies where country = "China"'> <br />
 			<input type="submit" value="query">
 		</form>	
 		
