@@ -15,7 +15,9 @@
 				}
 			}
 			// Connect to DB and get PDO handle
-			$this->model = modelConnect($this->database,$this->username,$this->password,$this->host);		
+			if (!empty($this->database)){
+				$this->model = modelConnect($this->database,$this->username,$this->password,$this->host);		
+			}
 		}
 
 		//// Execute all statements in statementArray
@@ -65,7 +67,7 @@
 						$statementData = $statement->fetchAll($fetchStyle);
 						$statementString = $statement->queryString;
 						$returnArray = array ('data'=>$statementData,'statement'=>$statementString);
-	  					array_push($return, $retAr);
+	  					array_push($return, $returnArray);
 	  				}
 	  				catch(PDOException $e) {
 						// Rollback changes to database on fail 

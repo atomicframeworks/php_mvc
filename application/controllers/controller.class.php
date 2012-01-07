@@ -3,6 +3,7 @@
 	class Controller {
 		public $model;
 		public $data;
+		public $headersArray = array ();
 		
 		public function __construct($args) {
 			if (!empty($args)){

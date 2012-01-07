@@ -24,8 +24,10 @@
 	    	//echo "Connection to $dbname successful <br />";
 	    }
 		catch(PDOException $e) {
-		    echo "Connection to $dbname failed <br />";
-	    	echo $e->getMessage();
+			if (DEVELOPMENT_ENVIRONMENT === true) {
+		    	echo "Connection to $dbname failed <br />";
+	    		echo $e->getMessage();
+	    	}
 	    }
 	//END DB connection try block
 		//Return $dbh if exists or false if error

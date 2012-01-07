@@ -71,13 +71,30 @@
 	
 	//// Hook used to load our view and controller from url string
 	function callHook (){
+		// Default controller that will load if none is found
+		$controller_str = 'proxies';
+		//Default view that will load if none is found
+		$view_str = 'select';
 		// Get url query string
-		$url = $_GET['url'];
-		// Break to array based on directory separator
-		$urlArray = explode(DIRECTORY_SEPARATOR, $url);
-		// Separate controller & view strings from query
-		$controller_str = $urlArray[0];
-		$view_str = $urlArray[1];
+		if(!empty($_GET['url'])){
+			$url = $_GET['url'];
+			// Break to array based on directory separator
+			$urlArray = explode(DIRECTORY_SEPARATOR, $url);
+			// Separate controller & view strings from query
+			if (!empty($urlArray[0])){
+				$controller_str = $urlArray[0];
+			}
+			if (!empty($urlArray[1])){
+				$view_str = $urlArray[1];
+			}
+
+		}
+		else{
+			// On controller fail either create controller & set 404 or use default controller & views above
+			//$args = array('username' => DB_USERNAME, 'password' => DB_PASSWORD, 'database' => $controller_str, 'view'=>$view_str);
+			//$controller = new Controller($args);
+			//$controller->setHeader(404);
+		}
 		
 		// Load files needed for controller & view
 		autoLoad($controller_str);
@@ -85,16 +102,17 @@
 		
 		// Create array to hold properties for controller	
 		$args = array('username' => DB_USERNAME, 'password' => DB_PASSWORD, 'database' => $controller_str, 'view'=>$view_str);
-		$controller = new Controller($args);						
-		$queryArray= explode('?query=',$_SERVER['REQUEST_URI']);
+		$controller = new Controller($args);	
 		
-		// Perform query statements
+		// Perform query statements				
+		$queryArray= explode('?query=',$_SERVER['REQUEST_URI']);
 		if(!empty($queryArray[1])){
 			$queryString = $queryArray[1];
 			$queryString = urldecode(tQuote($queryString));
 			//echo "<br/> Query: $queryString <br/>";
 			$controller->addStatement($queryString)->invoke()->fetchAll();
-		}
+		}	
+	
 		// Load our view
 		$controller->displayView();	
 	}
