@@ -8,5 +8,3 @@
 		
 	//// Load up our bootstrap (which loads config & shared files)
 	require_once (ROOT . DS . 'library' . DS . 'bootstrap.php');
-	
-	

@@ -55,16 +55,52 @@
 			return $this;
 		}
 		
+		public function setHeader($headersArray = array()){
+			if (!empty($headersArray)){
+				if(is_array($headersArray)){
+					foreach ($headersArray as $header){
+						$this->setHeader($header);
+					}
+				}
+				elseif(is_string($headersArray)){
+					array_push($this->headersArray, $headersArray);
+				}
+				elseif(is_int($headersArray)){
+					array_push($this->headersArray, $headersArray);
+				}
+			}
+			return $this;
+		}
+		
+		public function displayHeaders(){
+			foreach ($this->headersArray as $header){
+				// Load & include header view template
+				// Avoid creating an exposed variable here $headerFile
+				if(file_exists(ROOT . DS . 'application'  . DS . 'views' . DS . 'headers' . DS . $header . '.php')){
+					include(ROOT . DS . 'application'  . DS . 'views' . DS . 'headers' . DS . $header . '.php');
+				}
+			}
+		}
+		
 		public function displayView(){
 			// Set controller scope
 			$controller = $this;
 			// Set data scope
 			$data = $controller->data;
 			// Load view html template
-			$viewFile = ROOT . DS . 'application'  . DS . 'views' . DS . $this->database. DS .$this->view.'.php';
-			// Include it
-			if(file_exists($viewFile)){
-				include($viewFile);
+			// If file exists include it
+			// Avoid creating an exposed variable here for $viewFile
+			if(file_exists(ROOT . DS . 'application'  . DS . 'views' . DS . $this->database . DS . $this->view . '.php')){
+				// Display headers before the view
+				$controller->displayHeaders();
+				include(ROOT . DS . 'application'  . DS . 'views' . DS . $this->database . DS . $this->view . '.php');
+			}
+			else{
+				// Set 404 header if view cannot be loaded
+				$controller->setHeader('404');
+				// Display the 404
+				$controller->displayHeaders();
+
 			}
 		}	
 	}
