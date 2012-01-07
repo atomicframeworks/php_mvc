@@ -5,9 +5,18 @@
 	header($header);
 	//print_r(get_defined_vars());
 ?>
+<html>
+	<body>
+		<style>
+		</style>
 
-ERROR: 404 <br/>
+		<h2>
+			ERROR 404: Not Found
+		</h2>
+		The requested url <?php echo $_SERVER['REQUEST_URI']; ?> was not found on this server.
+	</body>
+</html>
 
-<?php echo $_SERVER['REQUEST_URI']; ?> -- Not Found!
+
 
 <?php die;?>

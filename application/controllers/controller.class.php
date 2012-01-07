@@ -57,6 +57,8 @@
 		}
 		
 		public function setHeader($headersArray = array()){
+			// Start output buffering to show headers first always
+			ob_start();
 			if (!empty($headersArray)){
 				if(is_array($headersArray)){
 					foreach ($headersArray as $header){
@@ -101,8 +103,8 @@
 				$controller->setHeader('404');
 				// Display the 404
 				$controller->displayHeaders();
-
 			}
+			ob_end_flush();
 		}	
 	}
 ?>

@@ -71,6 +71,7 @@
 	
 	//// Hook used to load our view and controller from url string
 	function callHook (){
+		ob_start();
 		// Default controller that will load if none is found
 		$controller_str = 'proxies';
 		//Default view that will load if none is found
@@ -112,7 +113,6 @@
 			//echo "<br/> Query: $queryString <br/>";
 			$controller->addStatement($queryString)->invoke()->fetchAll();
 		}	
-	
 		// Load our view
 		$controller->displayView();	
 	}
