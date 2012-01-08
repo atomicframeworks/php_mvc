@@ -71,11 +71,10 @@
 	
 	//// Hook used to load our view and controller from url string
 	function callHook (){
-		ob_start();
 		// Default controller that will load if none is found
-		$controller_str = 'proxies';
+		$controller_str = DEFAULT_CONTROLLER;
 		//Default view that will load if none is found
-		$view_str = 'select';
+		$view_str = DEFAULT_VIEW;
 		// Get url query string
 		if(!empty($_GET['url'])){
 			$url = $_GET['url'];
@@ -94,7 +93,7 @@
 			// On controller fail either create controller & set 404 or use default controller & views above
 			//$args = array('username' => DB_USERNAME, 'password' => DB_PASSWORD, 'database' => $controller_str, 'view'=>$view_str);
 			//$controller = new Controller($args);
-			//$controller->setHeader(404);
+			//$controller->setHeader(DEFAULT_404_HEADER);
 		}
 		
 		// Load files needed for controller & view
@@ -116,15 +115,16 @@
 		// Load our view
 		$controller->displayView();	
 	}
-
-	
+// Start outbound buffering - Only header data will be sent until a ->displayView() call is made and the buffer is flushed to output
+ob_start();
+// Set error reporting details and log file
 setReporting();
+// Security checks
 unregisterGlobals();
 removeMagicQuotes();
 //// Load base controller and model classes
 autoLoad('controller');
 autoLoad('model');
-
 // Load new controllers and views
 callHook();
 

@@ -100,7 +100,7 @@
 			}
 			else{
 				// Set 404 header if view cannot be loaded
-				$controller->setHeader('404');
+				$controller->setHeader(DEFAULT_404_HEADER);
 				// Display the 404
 				$controller->displayHeaders();
 			}
