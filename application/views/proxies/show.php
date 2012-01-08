@@ -1,7 +1,3 @@
-<!-- 
-<?php header("Content-type: text/plain"); ?> 
--->
-
 <html>
 	<body>
 	
