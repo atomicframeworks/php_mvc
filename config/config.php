@@ -3,8 +3,8 @@
 	//// Global config vars
 	define('DEVELOPMENT_ENVIRONMENT',true);
 	
-	define('DB_USERNAME', 'kevin');
-	define('DB_PASSWORD', 'f00d');
+	define('DB_USERNAME', 'password');
+	define('DB_PASSWORD', 'username');
 	define('DB_HOST', 'localhost');
 
 	define('DEFAULT_CONTROLLER', 'proxies');	
