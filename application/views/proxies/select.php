@@ -19,8 +19,7 @@
 			background-color:rgb(237, 236, 236);
 		}
 		</style>
-	
-		<form method="get" action="../<?php echo $controller->database . DS ;?>show">
+		<form method="get" action="<?php echo ASSET_HOST . DS . 'mvc' . DS . $controller->database . DS ;?>show">
 			Query: <input type="text" size="100" maxlength="100" name="query" value='select INET_NTOA(ip) as ip, id, port, http_code, last_update from proxies where country = "China"'> <br />
 			<input type="submit" value="query">
 		</form>	
