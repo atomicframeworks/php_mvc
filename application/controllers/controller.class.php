@@ -1,24 +1,68 @@
 <?php
 	//// Class to connect to a model and store data
 	class Controller {
-		public $model;
-		public $data;
-		public $headersArray = array ();
+		protected $_model;
+		public $_view;
+		
 		
 		public function __construct($args) {
+			// Create new model for the controller
+			$modelClass = '';
+			$baseModel = 'model';
+			if (!empty($args['model'])){
+				$modelClass = $args['model'];
+				// Uppercase model to add as suffix to model
+				//ucfirst($baseModel);
+			}			
+			$modelClass .= $baseModel;
+			if(class_exists($modelClass)){
+				$this->_model = new $modelClass($args);
+			}
+			// Load base model if we didn't load our modelClass
+			if (empty($this->_model)){
+				$this->_model = new $baseModel($args);
+			}
+			// Create properties for self after checking model
 			if (!empty($args)){
 				foreach ($args as $key=>$item){
 					$this->$key = $item;
 				}
 			}
-			// Create new model for the controller		
-			$controller = $this->model = new Model($args);
+			$this->_view = new View($args);
+		}
+
+		//// To String
+		public function __toString() {
+			return (string) get_class($this);
+		}
+				
+		//// Pass statement to model for a new ModelStatement
+		public function addStatement($statement){
+			$this->_model->addStatement($statement);
+			return $this;
 		}
 		
-		//// Pass statement to model
-		public function addStatement($statement){
-			$this->model->addStatement($statement);
+		//// Standard prepare for model pdo
+		public function prepare($statement){
+			$this->_model->prepare($statement);
 			return $this;
+		}
+		
+		//// Standard bindParam for model pdo
+		public function bindParams($params){
+			$this->_model->bindParams($params);
+			return $this;
+		}
+		
+		//// Clear the model
+		public function clear(){
+			$this->_model->clear();
+			return $this;
+		}
+		
+		// Set variables
+		function set($name,$value) {
+			$this->_view->set($name,$value);
 		}
 		
 		//// Execute all statements in array and passed
@@ -34,77 +78,40 @@
 					$this->addStatement($statements);
 				}
 			}
-			$this->model->invoke();
+			//$this->data = $this->_model->invoke();
+			$this->set('data',$this->_model->invoke());
 			return $this;
 		}
+		
+		// Execute transaction statements to model's PDO MySQL connection. (same as invoke)
+		public function executeStatements(){
+			$this->_model->executeStatements();
+			return $this;
+		}
+
 		
 		//// Fetch all results from executed statements
 		public function fetchAll($fetchStyle = PDO::FETCH_CLASS){
-			$this->data = $this->model->fetchAll($fetchStyle);
+			//$this->data = $this->_model->fetchAll($fetchStyle);
+			$this->set('data',$this->_model->fetchAll($fetchStyle));
 			return $this;
 		}
 		
+		
 		// Begin transaction with model's PDO MySQL connection. Statements execute only on commit.
 		public function beginTransaction(){
-			$this->model->beginTransaction();
+			$this->_model->beginTransaction();
 			return $this;
 		}
 		
 		// Commit transaction to model's PDO MySQL connection.
 		public function commitTransaction(){
-			$this->model->commitTransaction();
+			$this->_model->commitTransaction();
 			return $this;
 		}
 		
-		public function setHeader($headersArray = array()){
-			// Start output buffering to show headers first always
-			ob_start();
-			if (!empty($headersArray)){
-				if(is_array($headersArray)){
-					foreach ($headersArray as $header){
-						$this->setHeader($header);
-					}
-				}
-				elseif(is_string($headersArray)){
-					array_push($this->headersArray, $headersArray);
-				}
-				elseif(is_int($headersArray)){
-					array_push($this->headersArray, $headersArray);
-				}
-			}
-			return $this;
+		public function render(){
+			// Render template
+			$this->_view->render();
 		}
-		
-		public function displayHeaders(){
-			foreach ($this->headersArray as $header){
-				// Load & include header view template
-				// Avoid creating an exposed variable here $headerFile
-				if(file_exists(ROOT . DS . 'application'  . DS . 'views' . DS . 'headers' . DS . $header . '.php')){
-					include(ROOT . DS . 'application'  . DS . 'views' . DS . 'headers' . DS . $header . '.php');
-				}
-			}
-		}
-		
-		public function displayView(){
-			// Set controller scope
-			$controller = $this;
-			// Set data scope
-			$data = $controller->data;
-			// Load view html template
-			// If file exists include it
-			// Avoid creating an exposed variable here for $viewFile
-			if(file_exists(ROOT . DS . 'application'  . DS . 'views' . DS . $this->database . DS . $this->view . '.php')){
-				// Display headers before the view
-				$controller->displayHeaders();
-				include(ROOT . DS . 'application'  . DS . 'views' . DS . $this->database . DS . $this->view . '.php');
-			}
-			else{
-				// Set 404 header if view cannot be loaded
-				$controller->setHeader(DEFAULT_404_HEADER);
-				// Display the 404
-				$controller->displayHeaders();
-			}
-			ob_end_flush();
-		}	
 	}
-?>

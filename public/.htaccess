@@ -1,0 +1,10 @@
+<IfModule mod_rewrite.c>
+    ## Rewrite everything after index to url params
+    RewriteEngine on
+  
+    RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	RewriteRule ^(.*)$ index.php?url=$1 [PT,L,QSA]
+    
+</IfModule>

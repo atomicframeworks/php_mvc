@@ -1,18 +1,4 @@
 <?php
-
-	//// Set error display function
-	function setReporting() {
-		if (DEVELOPMENT_ENVIRONMENT == true) {
-			error_reporting(E_ALL);
-			ini_set('display_errors','On');
-		}
-		else {
-			error_reporting(E_ALL);
-			ini_set('display_errors','Off');
-			ini_set('log_errors', 'On');
-			ini_set('error_log', ROOT.DS.'tmp'.DS.'logs'.DS.'error.log');
-		}
-	}
 	
 	//// Check for Magic Quotes and remove them
 	function stripSlashesDeep($value) {
@@ -27,7 +13,62 @@
 			$_COOKIE= stripSlashesDeep($_COOKIE);
 		}
 	}
+	
+	function getParams(){
+		$return = array ();
+		$query_str = substr($_SERVER['QUERY_STRING'],4);
+		if (!empty($query_str)){
+			// Remove possible controller / view from query str
+			$query_str = explode($query_str, $_SERVER['REQUEST_URI']);
+			// Remove ? from query str
+			if (substr($query_str[1],0,1) == '?'){
+				$query_str = substr($query_str[1], 1 );
+			}
+			if(is_string($query_str)){
+				// parse query to vars in return array
+				parse_str($query_str, $return);
+			}
+		}
+		else {
+			
+		}
+		return $return;
+	}
+	
+		
+	function contains_bad_str($str_to_test) {
+		$bad_strings = array(
+		            "content-type:",
+		            "mime-version:",
+		            "multipart/mixed",
+		            "Content-Transfer-Encoding:",
+		            "bcc:",
+		            "cc:",
+		            "to:"
+		);
+	
+		foreach($bad_strings as $bad_string) {
+			$bad_string = str_replace("/", "\/",$bad_string);
+			if(preg_match("/(".$bad_string.")/i", strtolower($str_to_test)) != 0) {
+			  return true;
+			}
+		}
+	}
 
+	function contains_newlines($str_to_test) {
+	   if(preg_match("/(%0A|%0D|\\n+|\\r+)/i", $str_to_test) != 0) {
+	     return true;
+	   }
+	}
+	
+	function check_email_input($str_to_test){
+		if(contains_newlines($str_to_test) || contains_bad_str($str_to_test)){
+			return false;
+		}
+		else{
+			return true;
+		}
+	}
 	//// Check register globals and remove them
 	function unregisterGlobals() {
 	    if (ini_get('register_globals')) {
@@ -41,43 +82,31 @@
 	        }
 	    }
 	}
-	
-
-	//// Autoload any classes
-	function autoload($className) {
-		
-		if (file_exists(ROOT . DS . 'application' . DS . 'views' . DS . strtolower($className) . '.class.php')) {
-			require_once(ROOT . DS . 'application' . DS . 'views' . DS . strtolower($className) . '.class.php');
-		} 
-		if (file_exists(ROOT . DS . 'application' . DS . 'controllers' . DS . strtolower($className) . '.class.php')) {
-			require_once(ROOT . DS . 'application' . DS . 'controllers' . DS . strtolower($className) . '.class.php');
-		} 
-		if (file_exists(ROOT . DS . 'application' . DS . 'models' . DS . strtolower($className) . '.class.php')) {
-			require_once(ROOT . DS . 'application' . DS . 'models' . DS . strtolower($className) . '.class.php');
-		}
-		if (file_exists(ROOT . DS . 'application' . DS . 'includes' . DS . strtolower($className) . 'connect.inc.php')) {
-			require_once(ROOT . DS . 'application' . DS . 'includes' . DS . strtolower($className) . 'connect.inc.php');
-		}
-		if (file_exists(ROOT . DS . 'application' . DS . 'includes' . DS . strtolower($className) . 'statement.class.php')) {
-			require_once(ROOT . DS . 'application' . DS . 'includes' . DS . strtolower($className) . 'statement.class.php');
-		}  
-		
-	}
-	
 	//// Trim quotes from string
 	function tQuote($val = ''){
 		return trim($val,"\x22\x27");
 	}
-	
+
 	//// Hook used to load our view and controller from url string
 	function callHook (){
+		// Create new global registry
+		$registry = Registry::Construct();
 		// Default controller that will load if none is found
 		$controller_str = DEFAULT_CONTROLLER;
 		//Default view that will load if none is found
 		$view_str = DEFAULT_VIEW;
+		$username_str = DB_USERNAME;
+		$password_str = DB_PASSWORD;
+		
+		$registry->httpRequest = new HttpRequest();
+		// check query statements
+		$url = $registry->httpRequest->get('url');
+
 		// Get url query string
-		if(!empty($_GET['url'])){
-			$url = $_GET['url'];
+		if(!empty($url)){
+			// Route the URL
+			Router::route($url);
+
 			// Break to array based on directory separator
 			$urlArray = explode(DIRECTORY_SEPARATOR, $url);
 			// Separate controller & view strings from query
@@ -86,6 +115,7 @@
 			}
 			if (!empty($urlArray[1])){
 				$view_str = $urlArray[1];
+				//print_r( $view_str);
 			}
 
 		}
@@ -95,36 +125,40 @@
 			//$controller = new Controller($args);
 			//$controller->setHeader(DEFAULT_404_HEADER);
 		}
-		
-		// Load files needed for controller & view
-		autoLoad($controller_str);
-		autoLoad($view_str);
-		
 		// Create array to hold properties for controller	
-		$args = array('username' => DB_USERNAME, 'password' => DB_PASSWORD, 'database' => $controller_str, 'view'=>$view_str);
-		$controller = new Controller($args);	
+		$args = array('username' => $username_str, 'password' => $password_str, 'database' => $controller_str, 'controller' => $controller_str, 'view'=>$view_str, 'model' => $controller_str,'registry'=>$registry);
 		
-		// Perform query statements				
-		$queryArray= explode('?query=',$_SERVER['REQUEST_URI']);
-		if(!empty($queryArray[1])){
-			$queryString = $queryArray[1];
-			$queryString = urldecode(tQuote($queryString));
+		// Create new controller if exists as a class
+		if(class_exists($args['controller'])){
+			$registry->controller = new $args['controller']($args);
+		}
+		elseif(class_exists('Controller')){
+			// Else create default controller
+			$registry->controller = new Controller($args);
+		}
+	
+		// If view exists as a method on controller call it
+		if (method_exists($registry->controller,$view_str)){
+			$registry->controller->$view_str();
+		}
+		
+		// Check query statements
+		$query = $registry->httpRequest->get('query');
+		if (!empty($query)){
+			$queryString = urldecode($query);
 			//echo "<br/> Query: $queryString <br/>";
-			$controller->addStatement($queryString)->invoke()->fetchAll();
-		}	
-		// Load our view
-		$controller->displayView();	
+			$registry->controller->addStatement($queryString);
+			//Execute & return
+			$registry->controller->invoke()->fetchAll();
+		}
+
+		$registry->controller->render();    
 	}
-// Start outbound buffering - Only header data will be sent until a ->displayView() call is made and the buffer is flushed to output
+// Start outbound buffering - Only header data will be sent until a ->render() call is made and the buffer is flushed to output
 ob_start();
-// Set error reporting details and log file
-setReporting();
 // Security checks
 unregisterGlobals();
 removeMagicQuotes();
-//// Load base controller and model classes
-autoLoad('controller');
-autoLoad('model');
-// Load new controllers and views
+// Hook new controllers and views
 callHook();
 

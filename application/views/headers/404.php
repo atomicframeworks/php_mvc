@@ -3,19 +3,18 @@
 	header($header);
 	$header = 'Status: 404 Not Found';
 	header($header);
-	$tTime = '2s';
+	$tTime = '1.5s';
 	$transition = 'ease-in-out';
-	//print_r(get_defined_vars());
 ?>
 <html>
 	<head>
-		<?php include_once(DEFAULT_JQUERY); ?>
+		<?php include_once(JQUERY); ?>
 	
 	</head>
 	<body>
 		<style>	
 		/* font */
-		@font-face {font-family: 'HelveticaNeue-Light'; src: url('<?php echo ASSET_HOST; ?>/ttf/HelveticaNeue-Light.otf'); }
+		@font-face {font-family: 'HelveticaNeue-Light'; src: url('<?php echo ASSET_TTF; ?>HelveticaNeue-Light.otf'); }
 
 
 		body {
@@ -30,7 +29,7 @@
 		}
 		
 		body {
-			background: url("http://px.gaiabook.com/images/paper2.jpg");
+			background: url("<?php echo ASSET_IMG; ?>paper2.jpg");
 			-moz-background-size:100% 100%; /* Firefox 3.6 */
 			background-size:100% 100%;
 			background-repeat:no-repeat;
@@ -38,23 +37,15 @@
 		
 		#floater	{float:left; height:50%; margin-bottom:-120px;}
 		#content	{clear:both; height:240px; position:relative;}
-					
-		#fade {
+		/* Faded out */		
+		.fade {
 			-webkit-transition: opacity <?php echo $transition . ' ' . $tTime ?>;
 			-moz-transition: opacity <?php echo $transition . ' ' . $tTime ?>;
 		 	-o-transition: opacity <?php echo $transition . ' ' . $tTime ?>;
 		 	transition: opacity <?php echo $transition . ' ' . $tTime ?>;
 		 	opacity: 0;
 		}
-		
-		#fade.focus{
-			-webkit-transition: opacity <?php echo $transition . ' ' . $tTime ?>;
-			-moz-transition: opacity <?php echo $transition . ' ' . $tTime ?>;
-		 	-o-transition: opacity <?php echo $transition . ' ' . $tTime ?>;
-		 	transition: opacity <?php echo $transition . ' ' . $tTime ?>;
-			opacity: 1;
-		}
-		
+		/* Used to horizontally align table */
 		.outside {
 			display: table;
 			height: 100%; 
@@ -63,19 +54,13 @@
 			#position: relative; 
 
 		}
-		
+		/* Used to vertically align table */
 		 .outside .inside {
 		 	display: table-cell;
 		 	vertical-align: middle;
-		 	#position: absolute;
-		 	#top: 50%;
 		 }
 		 
-		 .outside .inside .container {
-		 	#position: relative;
-		 	#top: -50%;
-		}
-		
+
 		form input {
 			font-family: 'HelveticaNeue-Light', 'Helvetica Neue', Helvetica, arial, sans-serif;
 
@@ -89,7 +74,7 @@
 			border-radius: 10px;
 			border: 2px solid #00aeef;
 		}
-		
+		/* Button class of our inputs */
 		form input.button {
 			/* Text */
 			text-transform: uppercase;
@@ -122,16 +107,20 @@
 		<div class="outside" style="">
     		<div class="inside">
       			<div class="container" style="">
-		      		<div id="fade">
+		      		<div class="fade one">
 						<h2>
-						<img src="<?php echo ASSET_HOST; ?>/images/404_img_24.png" />
+						<img src="<?php echo ASSET_IMG; ?>404_img_24.png" />
 							<br />
 							Sorry!
 						</h2>
-						The requested url <?php echo $_SERVER['REQUEST_URI']; ?> was not found on this server.
+					</div>
+					<div class="fade two">
+						The requested url <?php //echo $_SERVER['REQUEST_URI']; ?> was not found on this server<?php //echo ' '.$_SERVER['SERVER_NAME']; ?>.
+						<br/>
+						Contact Kevin for access.
 						<br/>
 						<br/>
-						<form action="<?php echo ASSET_HOST; ?>/mvc/<?php echo DEFAULT_CONTROLLER . DS . DEFAULT_VIEW ?>" method="post">
+						<form action="http://<?php echo $_SERVER['SERVER_NAME']; ?>" method="post">
 							<input type="submit" name="submit" value="Home" class="button" />
 						</form>
 					</div>
@@ -143,10 +132,12 @@
 		</center>
 
 		<script type="text/javascript">
-			
+
 			$(document).ready(function() {
-				// Fade in items in fade div
-				$("#fade").css('opacity',1);
+				// Fade in items in order
+				$('.one').css('opacity',1).delay(800).queue(function() {
+            		$('.two').css('opacity', 1);
+          		});
 				
 				
 				// Toggle pressed button class on mouse down & up
@@ -162,13 +153,14 @@
 						$(this).removeClass('pressed');
 					}
 				);
-				
-				
 			});
 			
 		</script>
-		
+		<img src="http://www.atomicframework.com/cm/?img=error404" style='display:none;' alt='' />
 		
 	</body>
 </html>
-<?php die;?>
+<?php 
+// Kill php to prevent anything else from executing
+die;
+?>
